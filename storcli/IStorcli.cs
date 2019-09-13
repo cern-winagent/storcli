@@ -5,8 +5,11 @@ using storcli.Storcli;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+
+using storcli.Exceptions;
 
 namespace storcli
 {
@@ -19,6 +22,11 @@ namespace storcli
         public string Execute(JObject set)
         {
             settings = set.ToObject<Settings.Plugin>();
+
+            if (!File.Exists(settings.StorcliFilePath))
+            {
+                throw new WrongPathException(String.Format("Could not find Storcli: {0}", settings.StorcliFilePath));
+            }
 
             Server = new Server();
             var version = getStorcliVersion();
