@@ -27,60 +27,66 @@ namespace storcli
             {
                 throw new WrongPathException(String.Format("Could not find Storcli: {0}", settings.StorcliFilePath));
             }
-
-            Server = new Server();
-            var version = getStorcliVersion();
-            var showAll = getServerInfo();
-            var callShow = getControllersInfo();
-            var eallShow = getEnclosureDeviceInfo();
-            var sallShowAll = getPhysicalDriveInfo();
-            var rawData = new { showAll, callShow, eallShow, sallShowAll };
-            var serverModel = new Models.Server()
+            try
             {
-                Name = Server.HostName,
-                OperatingSystem = Server.OperatingSystem,
-                Controllers = Server.Controllers.Select(c => new Models.Controller()
+                Server = new Server();
+                var version = getStorcliVersion();
+                var showAll = getServerInfo();
+                var callShow = getControllersInfo();
+                var eallShow = getEnclosureDeviceInfo();
+                var sallShowAll = getPhysicalDriveInfo();
+                var rawData = new { showAll, callShow, eallShow, sallShowAll };
+                var serverModel = new Models.Server()
                 {
-                    ControllerNumber = c.Id,
-                    EnclosureDevices = c.EnclosureDevices.Select(ed => new Models.EnclosureDevice()
+                    Name = Server.HostName,
+                    OperatingSystem = Server.OperatingSystem,
+                    Controllers = Server.Controllers.Select(c => new Models.Controller()
                     {
-                        Eid = ed.EID,
-                        NrPDs = ed.PDs,
-                        NrSlots = ed.Slots,
-                        Port = ed.Port,
-                        PhysicalDrives = Server.PhysicalDrives.Where(pd => pd.ControllerId == c.Id && pd.EnclosureId == ed.EID).Select(pd => new Models.PhysicalDrive()
+                        ControllerNumber = c.Id,
+                        EnclosureDevices = c.EnclosureDevices.Select(ed => new Models.EnclosureDevice()
                         {
-                            AssignmentType = pd.State,
-                            MediaErrorCount = pd.MediaErrorCount,
-                            PredictiveFailureCount = pd.PredictiveFailureCount,
-                            ProductId = pd.Model,
-                            SerialNumber = pd.SerialNumber,
-                            Size = pd.Size,
-                            Slot = pd.Slot,
-                            VendorId = pd.ProducerId,
-                            VirtualDriveDigitalGroup = pd.DigitalGroup == "-" ? null : (int?)int.Parse(pd.DigitalGroup)
+                            Eid = ed.EID,
+                            NrPDs = ed.PDs,
+                            NrSlots = ed.Slots,
+                            Port = ed.Port,
+                            PhysicalDrives = Server.PhysicalDrives.Where(pd => pd.ControllerId == c.Id && pd.EnclosureId == ed.EID).Select(pd => new Models.PhysicalDrive()
+                            {
+                                AssignmentType = pd.State,
+                                MediaErrorCount = pd.MediaErrorCount,
+                                PredictiveFailureCount = pd.PredictiveFailureCount,
+                                ProductId = pd.Model,
+                                SerialNumber = pd.SerialNumber,
+                                Size = pd.Size,
+                                Slot = pd.Slot,
+                                VendorId = pd.ProducerId,
+                                VirtualDriveDigitalGroup = pd.DigitalGroup == "-" ? null : (int?)int.Parse(pd.DigitalGroup)
+                            }).ToList(),
                         }).ToList(),
+                        Model = c.Name,
+                        SerialNumber = c.SerialNumber,
+                        Type = c.Type,
+                        VirtualDrives = c.VirtualDrives.Select(vd => new Models.VirtualDrive()
+                        {
+                            DigitalGroup = vd.DigitalGroup,
+                            Size = vd.Size,
+                            State = vd.State,
+                            Type = vd.Type,
+                            VDNumber = vd.Id
+                        }).ToList()
                     }).ToList(),
-                    Model = c.Name,
-                    SerialNumber = c.SerialNumber,
-                    Type = c.Type,
-                    VirtualDrives = c.VirtualDrives.Select(vd => new Models.VirtualDrive()
-                    {
-                        DigitalGroup = vd.DigitalGroup,
-                        Size = vd.Size,
-                        State = vd.State,
-                        Type = vd.Type,
-                        VDNumber = vd.Id
-                    }).ToList()
-                }).ToList(),
-                CurrentDateTime = DateTime.Now.ToUniversalTime(),
-                // TODO: Get this from an option
-                TimeIntervalInSeconds = 9999999,
-                UnprocessedOutput = JsonConvert.SerializeObject(rawData),
-                StorcliVersion = version
-            };
+                    CurrentDateTime = DateTime.Now.ToUniversalTime(),
+                    // TODO: Get this from an option
+                    TimeIntervalInSeconds = 9999999,
+                    UnprocessedOutput = JsonConvert.SerializeObject(rawData),
+                    StorcliVersion = version
+                };
 
-            return JsonConvert.SerializeObject(serverModel);
+                return JsonConvert.SerializeObject(serverModel);
+            }
+            catch (Exception)
+            {
+                throw new StorcliNotSupportedException("It looks like this machine does not support Storcli");
+            }
         }
 
         String getStorcliVersion()

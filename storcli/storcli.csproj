@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Exceptions\StorcliNotSupportedException.cs" />
     <Compile Include="Exceptions\WrongPathException.cs" />
     <Compile Include="IStorcli.cs" />
     <Compile Include="Models\Controller.cs" />
