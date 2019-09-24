@@ -6,7 +6,7 @@ namespace storcli.Exceptions
     {
         public StorcliNotSupportedException(string message) : base(message)
         {
-
+            Data["continue"] = false;
         }
     }
 }
