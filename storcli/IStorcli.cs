@@ -19,6 +19,8 @@ namespace storcli
         private Server Server;
         private Settings.Plugin settings;
 
+        public event EventHandler<MessageEventArgs> MessageEvent;
+
         public string Execute(JObject set)
         {
             settings = set.ToObject<Settings.Plugin>();
